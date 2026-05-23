@@ -4,19 +4,24 @@ using System.Linq;
 using TMPro;
 
 /// <summary>
-/// Progressive Wave Spawner for the Invincible Action Game.
-/// Spawns enemies at tagged PatrolPoints and transitions waves when all enemies are defeated.
+/// Optimized Wave Spawner utilizing Object Pooling for high-performance memory management.
+/// Transitions waves and spawns the boss using pool-based instantiation.
 /// </summary>
 public class SwarmSpawner : MonoBehaviour
 {
-    [Header("Prefabs")]
-    public GameObject groundEnemyPrefab;
-    public GameObject flyingEnemyPrefab;
+    [Header("Pool Tags")]
+    public string groundEnemyTag = "XenoStalker";
+    public string flyingEnemyTag = "Viltrumite";
+    public string bossTag = "Boss";
 
     [Header("Wave Settings")]
     public int currentWave = 0;
     public int enemiesPerWaveMultiplier = 5;
-    public float spawnDelay = 1.0f;
+    public float spawnDelay = 0.5f;
+
+    [Header("Boss Settings")]
+    public int bossWave = 5;
+    private bool bossSpawned = false;
 
     [Header("UI")]
     public TextMeshProUGUI waveText;
@@ -44,12 +49,21 @@ public class SwarmSpawner : MonoBehaviour
     {
         if (isSpawning) return;
 
-        // Check if all enemies in the current wave are dead
-        activeEnemies.RemoveAll(e => e == null);
+        // Efficient cleanup of references: remove objects that are inactive (returned to pool)
+        activeEnemies.RemoveAll(e => e == null || !e.activeInHierarchy);
 
         if (activeEnemies.Count == 0)
         {
-            StartNextWave();
+            if (currentWave == bossWave - 1 && !bossSpawned)
+            {
+                currentWave++;
+                SpawnBoss();
+                bossSpawned = true;
+            }
+            else if (currentWave < bossWave || bossSpawned)
+            {
+                StartNextWave();
+            }
         }
     }
 
@@ -70,13 +84,14 @@ public class SwarmSpawner : MonoBehaviour
         {
             Transform spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
             
-            // Alternating spawn logic: Mix ground and flying enemies
-            GameObject prefab = (i % 2 == 0) ? groundEnemyPrefab : flyingEnemyPrefab;
+            // Alternating spawn logic using Pool Tags
+            string tagToSpawn = (i % 2 == 0) ? groundEnemyTag : flyingEnemyTag;
             
-            if (prefab != null)
+            Vector3 spawnPos = spawnPoint.position + (tagToSpawn == flyingEnemyTag ? Vector3.up * 20f : Vector3.zero);
+            GameObject enemy = ObjectPoolManager.Instance.SpawnFromPool(tagToSpawn, spawnPos, Quaternion.identity);
+            
+            if (enemy != null)
             {
-                Vector3 spawnPos = spawnPoint.position + (prefab == flyingEnemyPrefab ? Vector3.up * 20f : Vector3.zero);
-                GameObject enemy = Instantiate(prefab, spawnPos, Quaternion.identity);
                 activeEnemies.Add(enemy);
             }
 
@@ -84,5 +99,19 @@ public class SwarmSpawner : MonoBehaviour
         }
 
         isSpawning = false;
+    }
+
+    private void SpawnBoss()
+    {
+        if (waveText != null) waveText.text = "BOSS INCOMING";
+        
+        Transform spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
+        Vector3 spawnPos = spawnPoint.position + Vector3.up * 30f;
+        
+        GameObject boss = ObjectPoolManager.Instance.SpawnFromPool(bossTag, spawnPos, Quaternion.identity);
+        if (boss != null)
+        {
+            activeEnemies.Add(boss);
+        }
     }
 }
