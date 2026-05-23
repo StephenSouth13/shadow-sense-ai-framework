@@ -913,8 +913,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RobotBrain
   fieldOfView: {fileID: 1345310904}
   navMeshAgent: {fileID: 1345310902}
+  animator: {fileID: 0}
   currentState: 0
   patrolPoints: []
+  idleState: Monster07_Idle
+  runState: Monster07_Run
+  attackState: Monster07_Attack01
+  attackRange: 2
 --- !u!114 &1345310904
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -960,6 +965,33 @@ CapsuleCollider:
   m_Height: 2.3760269
   m_Direction: 1
   m_Center: {x: 0, y: 0.68801343, z: -0.012626648}
+--- !u!1 &1367302289 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -2023754695667522748, guid: 693089390ec5fe34c9c98c62a8fd3fcf, type: 3}
+  m_PrefabInstance: {fileID: 1638631394}
+  m_PrefabAsset: {fileID: 0}
+--- !u!95 &1367302292
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1367302289}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 66c5ad223ff52ba42aea1f8647486902, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &1471513476
 GameObject:
   m_ObjectHideFlags: 0
@@ -1540,6 +1572,21 @@ PrefabInstance:
       propertyPath: m_TagString
       value: Player
       objectReference: {fileID: 0}
+    - target: {fileID: 5866666021909216657, guid: 693089390ec5fe34c9c98c62a8fd3fcf, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: 66c5ad223ff52ba42aea1f8647486902, type: 2}
+    - target: {fileID: 5866666021909216657, guid: 693089390ec5fe34c9c98c62a8fd3fcf, type: 3}
+      propertyPath: m_WarningMessage
+      value: "\nBinding warning: Some generic clip(s) animate transforms that are
+        already bound by a Humanoid avatar. These transforms can only be changed
+        by Humanoid clips.\n\tTransform 'root'\n\tTransform 'middle2.l'\n\tTransform
+        'arm_stretch.l'\n\tTransform 'spine_02.x'\n\tTransform 'spine_01.x'\n\tTransform
+        'toes_01.r'\n\tTransform 'thigh_stretch.r'\n\tTransform 'thumb3.r'\n\tTransform
+        'middle1.r'\n\tTransform 'root.x'\n\tand more ...\n\tFrom animation clip
+        'Monster07_Idle'\n\tFrom animation clip 'Monster07_Run'\n\tFrom animation
+        clip 'Monster07_Die'\n\tFrom animation clip 'Monster07_Attack01'"
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1559,6 +1606,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 693089390ec5fe34c9c98c62a8fd3fcf, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1345310901}
+    - targetCorrespondingSourceObject: {fileID: -2023754695667522748, guid: 693089390ec5fe34c9c98c62a8fd3fcf, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1367302292}
   m_SourcePrefab: {fileID: 100100000, guid: 693089390ec5fe34c9c98c62a8fd3fcf, type: 3}
 --- !u!1 &1904016484
 GameObject:
