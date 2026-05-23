@@ -25,6 +25,7 @@ public class PlayerCombatController : MonoBehaviour
     public ParticleSystem sonicBoomFX;
 
     private CharacterController controller;
+    private PlayerStatsManager stats;
     private Vector3 moveInput;
     private float verticalInput;
     private bool isBoosting;
@@ -33,6 +34,7 @@ public class PlayerCombatController : MonoBehaviour
     private void Awake()
     {
         controller = GetComponent<CharacterController>();
+        stats = GetComponent<PlayerStatsManager>();
         if (animator == null) animator = GetComponentInChildren<Animator>();
     }
 
@@ -64,13 +66,22 @@ public class PlayerCombatController : MonoBehaviour
 
     private void HandleFlight()
     {
-        float currentSpeed = flySpeed * (isBoosting ? boostMultiplier : 1.0f);
+        // If out of mana, force ground-only movement
+        bool canFly = stats == null || stats.CanFly();
+        if (!canFly && !controller.isGrounded)
+        {
+            verticalInput = -1f; // Force fall
+            isBoosting = false;
+        }
+
+        float currentSpeed = flySpeed * (isBoosting && canFly ? boostMultiplier : 1.0f);
         
         // Horizontal flight relative to world
         Vector3 horizontalMove = moveInput * currentSpeed;
         
-        // Vertical flight
-        Vector3 verticalMove = Vector3.up * verticalInput * verticalSpeed;
+        // Vertical flight (restricted by mana)
+        float vInput = canFly ? verticalInput : (controller.isGrounded ? 0 : -1f);
+        Vector3 verticalMove = Vector3.up * vInput * verticalSpeed;
 
         Vector3 finalMove = horizontalMove + verticalMove;
         controller.Move(finalMove * Time.deltaTime);
@@ -79,11 +90,11 @@ public class PlayerCombatController : MonoBehaviour
         if (animator != null)
         {
             animator.SetFloat("ForwardSpeed", moveInput.z);
-            animator.SetBool("IsFlying", true);
+            animator.SetBool("IsFlying", !controller.isGrounded);
         }
 
         // FX
-        if (isBoosting && sonicBoomFX != null && !sonicBoomFX.isPlaying)
+        if (isBoosting && canFly && sonicBoomFX != null && !sonicBoomFX.isPlaying)
             sonicBoomFX.Play();
     }
 
