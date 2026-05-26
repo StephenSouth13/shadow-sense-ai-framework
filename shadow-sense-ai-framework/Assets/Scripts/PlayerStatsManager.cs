@@ -56,10 +56,25 @@ public class PlayerStatsManager : MonoBehaviour, IDamageable
         }
     }
 
+    private float lastHealthValue = -1f;
+    private float lastManaValue = -1f;
+
     private void UpdateUI()
     {
-        if (healthSlider != null) healthSlider.value = currentHealth / maxHealth;
-        if (manaSlider != null) manaSlider.value = currentMana / maxMana;
+        float healthPct = currentHealth / maxHealth;
+        float manaPct = currentMana / maxMana;
+
+        if (healthSlider != null && !Mathf.Approximately(healthPct, lastHealthValue))
+        {
+            healthSlider.value = healthPct;
+            lastHealthValue = healthPct;
+        }
+
+        if (manaSlider != null && !Mathf.Approximately(manaPct, lastManaValue))
+        {
+            manaSlider.value = manaPct;
+            lastManaValue = manaPct;
+        }
     }
 
     public bool CanFly() => currentMana > 0;

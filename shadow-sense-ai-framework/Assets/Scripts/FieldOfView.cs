@@ -19,13 +19,15 @@ public class FieldOfView : MonoBehaviour
         StartCoroutine(FindTargetWithDelay(0.1f));
     }
 
+    private Collider[] searchResults = new Collider[10];
+
     // Update is called once per frame
     IEnumerator FindTargetWithDelay(float delay)
     {
         while (true)
         {
-            yield return new WaitForSeconds(delay);
             FindVisibleTargets();
+            yield return new WaitForSeconds(delay);
         }
     }
 
@@ -33,13 +35,13 @@ public class FieldOfView : MonoBehaviour
     {
         canSeePlayer = false;
         // 1. tim tat ca muc tieu trong pham vi ban kinh
-        var colliders = Physics.OverlapSphere(transform.position, 
-            viewRadius, targetLayerMask);
+        int count = Physics.OverlapSphereNonAlloc(transform.position, 
+            viewRadius, searchResults, targetLayerMask);
 
-        for (int i = 0; i < colliders.Length; i++)
+        for (int i = 0; i < count; i++)
         {
-            var target = colliders[i].transform;
-            var direction = (target.position - transform.position).normalized;
+            var target = searchResults[i].transform;
+var direction = (target.position - transform.position).normalized;
             
             // 2. tinh goc
             var angle = Vector3.Angle(transform.forward, direction);

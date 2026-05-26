@@ -32,6 +32,9 @@ public class SteeringAgent : MonoBehaviour
 
     private Vector3 velocity;
     private Vector3 currentSteeringForce;
+    private float avoidanceTimer;
+    private static readonly float AvoidanceInterval = 0.1f; // Check every 100ms
+    private Vector3 cachedAvoidanceForce;
 
     private void Update()
     {
@@ -47,7 +50,7 @@ public class SteeringAgent : MonoBehaviour
             totalForce += Wander() * wanderWeight;
         }
 
-        totalForce += ObstacleAvoidance() * avoidanceWeight;
+        totalForce += ObstacleAvoidance(); // Weight already applied inside
         totalForce += Separation() * separationWeight;
 
         ApplyForce(totalForce);
@@ -75,10 +78,11 @@ public class SteeringAgent : MonoBehaviour
     public Vector3 Seek(Vector3 target)
     {
         Vector3 desired = target - transform.position;
-        float distance = desired.magnitude;
-        if (distance < 0.1f) return Vector3.zero;
+        float sqrDist = desired.sqrMagnitude;
+        if (sqrDist < 0.01f) return Vector3.zero;
 
-        desired = desired.normalized * maxSpeed;
+        float distance = Mathf.Sqrt(sqrDist);
+        desired = (desired / distance) * maxSpeed;
         if (distance < arrivalDistance)
         {
             desired *= (distance / arrivalDistance);
@@ -90,15 +94,23 @@ public class SteeringAgent : MonoBehaviour
 
     public Vector3 ObstacleAvoidance()
     {
+        avoidanceTimer -= Time.deltaTime;
+        if (avoidanceTimer > 0) return cachedAvoidanceForce;
+        
+        avoidanceTimer = AvoidanceInterval;
         Vector3 avoidanceForce = Vector3.zero;
         RaycastHit hit;
 
+        Vector3 fwd = transform.forward;
+        Vector3 up = transform.up;
+        Vector3 right = transform.right;
+
         Vector3[] whiskers = {
-            transform.forward,
-            Quaternion.AngleAxis(30, transform.up) * transform.forward,
-            Quaternion.AngleAxis(-30, transform.up) * transform.forward,
-            Quaternion.AngleAxis(30, transform.right) * transform.forward,
-            Quaternion.AngleAxis(-30, transform.right) * transform.forward
+            fwd,
+            (fwd + up * 0.5f).normalized,
+            (fwd - up * 0.5f).normalized,
+            (fwd + right * 0.5f).normalized,
+            (fwd - right * 0.5f).normalized
         };
 
         foreach (var dir in whiskers)
@@ -109,7 +121,8 @@ public class SteeringAgent : MonoBehaviour
                 avoidanceForce += targetForce * (1.0f - (hit.distance / avoidanceRadius));
             }
         }
-        return avoidanceForce;
+        cachedAvoidanceForce = avoidanceForce * avoidanceWeight;
+        return cachedAvoidanceForce;
     }
 
     public Vector3 Separation()
@@ -118,15 +131,17 @@ public class SteeringAgent : MonoBehaviour
         Vector3 force = Vector3.zero;
         int count = 0;
 
+        float sqrRadius = separationRadius * separationRadius;
+
         foreach (var neighbor in neighbors)
         {
             if (neighbor.gameObject == gameObject) continue;
 
             Vector3 diff = transform.position - neighbor.transform.position;
-            float dist = diff.magnitude;
-            if (dist > 0)
+            float sqrDist = diff.sqrMagnitude;
+            if (sqrDist > 0 && sqrDist < sqrRadius)
             {
-                force += diff.normalized / dist;
+                force += diff.normalized / Mathf.Sqrt(sqrDist);
                 count++;
             }
         }

@@ -38,13 +38,21 @@ public class RobotBrain : MonoBehaviour
         }
     }
 
+    private float animatorUpdateTimer;
+    private static readonly float AnimatorUpdateInterval = 0.1f;
+
     // Update is called once per frame
     void Update()
     {
-        UpdateAnimation();
+        animatorUpdateTimer -= Time.deltaTime;
+        if (animatorUpdateTimer <= 0)
+        {
+            animatorUpdateTimer = AnimatorUpdateInterval;
+            UpdateAnimation();
+        }
 
         switch (currentState)
-        {
+{
             case State.Patrol:
                 DoPatrol();
                 if(fieldOfView.canSeePlayer)

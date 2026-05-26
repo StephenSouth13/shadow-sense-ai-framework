@@ -45,15 +45,23 @@ public class SwarmSpawner : MonoBehaviour
         StartNextWave();
     }
 
+    private float cleanupTimer;
+    private static readonly float CleanupInterval = 0.5f;
+
     private void Update()
     {
         if (isSpawning) return;
 
-        // Efficient cleanup of references: remove objects that are inactive (returned to pool)
-        activeEnemies.RemoveAll(e => e == null || !e.activeInHierarchy);
+        cleanupTimer -= Time.deltaTime;
+        if (cleanupTimer <= 0)
+        {
+            cleanupTimer = CleanupInterval;
+            // Efficient cleanup of references: remove objects that are inactive (returned to pool)
+            activeEnemies.RemoveAll(e => e == null || !e.activeInHierarchy);
+        }
 
         if (activeEnemies.Count == 0)
-        {
+{
             if (currentWave == bossWave - 1 && !bossSpawned)
             {
                 currentWave++;
